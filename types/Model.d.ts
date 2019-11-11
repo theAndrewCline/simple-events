@@ -1,3 +1,6 @@
 interface Model {
-  services: string[]
+  services: ({
+    id: number
+    name: string
+  })[] // list of service names
 }
