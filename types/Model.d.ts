@@ -1,4 +1,4 @@
-interface Model {
+export interface Model {
   services: Service[] // list of service names
 }
 

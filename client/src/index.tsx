@@ -2,21 +2,20 @@ import React, { useState, useEffect } from 'react'
 import * as ReactDOM from 'react-dom'
 import { Model, Service } from '../../types/Model'
 
-type AppState = any
+type AppState = 'Loading' | 'Error' | Model
 
 const App = () => {
-  const [appState, updateAppState]: [AppState, any] = useState('Loading')
+  const [appState, updateAppState] = useState<AppState>('Loading')
 
   useEffect(() => {
     fetch('http://localhost:3333/services')
       .then((x) => x.json())
-      .then((services: Service[]) => {
-        console.log(services)
+      .then((services: Model) => {
         updateAppState(services)
       })
       .catch((err) => {
         updateAppState('Error')
-        console.log(err)
+        console.error(err)
       })
   }, [])
 
@@ -27,10 +26,24 @@ const App = () => {
   } else {
     return (
       <>
-        {appState.services.map((service: Service) => (<h1 key={service.id}>{service.name}</h1>))}
+        {
+          appState.services.map((service: Service) => (
+            <ServiceView key={service.id} service={service} />
+          ))
+        }
       </>
     )
   }
+}
+
+const ServiceView = ({ service }: { service: Service }) => {
+  return (
+    <>
+      <h1>{service.name}</h1>
+      <button>Edit</button>
+      <button>Delete</button>
+    </>
+  )
 }
 
 ReactDOM.render(<App />, document.querySelector('#root'))
