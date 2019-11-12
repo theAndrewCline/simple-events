@@ -11,12 +11,13 @@ app.use(express.json())
 
 app.get('/events', (req, res) => {
 
-  const eventsCB = (services: Error | Event[]) => {
-    if (services instanceof Error) {
+  const eventsCB = (events: Error | Event[]) => {
+    if (events instanceof Error) {
+      console.log(events)
       res.set(500)
-      res.send(services)
+      res.send(new Error('server error'))
     } else {
-      res.send({ services })
+      res.send({ events })
     }
   }
 

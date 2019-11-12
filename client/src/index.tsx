@@ -11,12 +11,21 @@ const App = () => {
   useEffect(() => {
     fetch('http://localhost:3333/events')
       .then((x) => x.json())
-      .then((events: Model) => {
-        updateAppState(events)
+      .then(x => {
+        console.log(x)
+        return x
+      })
+      .then((model: Model | Error) => {
+        if (model instanceof Error) {
+          console.error(model)
+          updateAppState('Error')
+        } else {
+          updateAppState(model)
+        }
       })
       .catch((err) => {
-        updateAppState('Error')
         console.error(err)
+        updateAppState('Error')
       })
   }, [])
 
