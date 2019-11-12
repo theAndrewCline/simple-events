@@ -63,4 +63,3 @@ typings/
 # project specific
 .cache
 dist
-db
