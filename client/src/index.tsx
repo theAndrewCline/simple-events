@@ -11,10 +11,6 @@ const App = () => {
   useEffect(() => {
     fetch('http://localhost:3333/events')
       .then((x) => x.json())
-      .then(x => {
-        console.log(x)
-        return x
-      })
       .then((model: Model | Error) => {
         if (model instanceof Error) {
           console.error(model)
@@ -44,14 +40,13 @@ const LoadingView = () => (<h1>Loading...</h1>)
 const ErrorView = () => (<h1>Error</h1>)
 
 const DefaultView = ({ events }: { events: Event[] }) => (
-  <>
+  <div className='flex flex-col justify-center'>
     <PlansHeaderView />
-    {
-      events.map((event: Event) => (
-        <EventView key={event.id} event={event} />
-      ))
-    }
-  </>
+    {events.length > 0 ? events.map((event: Event) => (
+      <EventView key={event.id} event={event} />
+    ))
+      : <h1 className='mr-auto ml-auto text-gray-700 text-xl p-2'>Add some events!</h1>}
+  </div>
 )
 
 const PlansHeaderView = () => (
