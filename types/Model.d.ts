@@ -1,8 +1,8 @@
 export interface Model {
-  services: Service[] // list of service names
+  events: Event[] // list of service names
 }
 
-export interface Service {
+export interface Event {
   id: number
   name: string
 }
