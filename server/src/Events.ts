@@ -6,8 +6,8 @@ const db: Database = new sqlite3.Database(
   path.resolve(__dirname, '../../db/events.db')
 )
 
-// createTableIfItDoesNotExist :: creates table if it doesn't already exist
-export const createTable = () => (
+// setupTable :: creates table if it doesn't already exist
+export const setupTable = () => (
   db.run(
     `CREATE TABLE IF NOT EXISTS events (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -71,5 +71,6 @@ export default {
   getAll: getAllEvents,
   getById: getEventById,
   create: createEvent,
-  updateById: updateEventById
+  updateById: updateEventById,
+  setupTable: setupTable
 }

@@ -1,5 +1,5 @@
 import express from 'express'
-import Events, { createTable } from './Events'
+import Events from './Events'
 import { Event } from '../../types/Model'
 import cors from 'cors'
 
@@ -9,7 +9,7 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-createTable()
+Events.setupTable()
 
 app.get('/events', (req, res) => {
 
