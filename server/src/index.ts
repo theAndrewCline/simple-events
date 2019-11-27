@@ -9,6 +9,8 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
+Events.setupTable()
+
 app.get('/events', (req, res) => {
 
   const eventsCB = (events: Error | Event[]) => {
