@@ -10,8 +10,9 @@ const db: Database = new sqlite3.Database(
 export const setupTable = () => (
   db.run(
     `CREATE TABLE IF NOT EXISTS events (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT
+      id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      timestamp TEXT NOT NULL
     )`
   )
 )
@@ -28,7 +29,7 @@ export const getAllEvents = (callback: (a: Event[] | Error) => void) => {
 }
 
 // getEventById :: Id -> Monoid? -> void
-// maybe consider making a curried function? 
+// maybe consider making a curried function?
 export const getEventById = (
   id: number,
   callback: (a: Event | Error) => void
@@ -43,8 +44,8 @@ export const getEventById = (
 }
 
 // updateEventById :: Id -> Callback -> void
-export const updateEventById = ({ id, name }: Event, callback: (a: Error | Event[]) => void) => {
-  db.all('update events set name = ? where id = ?', [name, id], (err, rows) => {
+export const updateEventById = ({ id, name, timestamp }: Event, callback: (a: Error | Event[]) => void) => {
+  db.all('update events set name = ?, timestamp = ? where id = ?', [name, timestamp, id], (err, rows) => {
     if (err) {
       callback(err)
     } else {
@@ -53,17 +54,20 @@ export const updateEventById = ({ id, name }: Event, callback: (a: Error | Event
   })
 }
 
-// createEvent :: Event -> Sucess || Failure
-export const createEvent = ({ name }: { name: string }, callback: (a: Error | Event) => void) => {
-  db.run('insert into events (name) values (?)', [name], function (err: Error) {
-    if (err) {
-      callback(err)
-    } else {
-      callback({
-        id: this.lastID,
-        name
-      })
-    }
+type createEvent = (e: { name: string, timestamp: string }) => Promise<Event>
+export const createEvent: createEvent = async ({ name, timestamp }) => {
+  return new Promise((resolve, reject) => {
+    db.run('insert into events (name, timestamp) values (?, ?)', [name, timestamp], function (err: Error) {
+      if (err) {
+        reject(err)
+      } else {
+        resolve({
+          id: this.lastID,
+          name,
+          timestamp
+        })
+      }
+    })
   })
 }
 

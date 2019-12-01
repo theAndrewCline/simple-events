@@ -5,4 +5,5 @@ export interface Model {
 export interface Event {
   id: number
   name: string
+  timestamp: string
 }

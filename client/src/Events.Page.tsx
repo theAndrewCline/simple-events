@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 
 import { Model, Event } from '../../types/Model'
 import { Modal } from './components/Modal'
-import { FetchAllEvents } from './lib/Events.api'
+import { CreateNewEvent, FetchAllEvents } from './lib/Events.api'
 
 type EventsPageState = 'Loading' | 'Error' | Model
 
@@ -40,18 +40,77 @@ const LoadingView = () => (<h1>Loading...</h1>)
 
 const ErrorView = () => (<h1>Error</h1>)
 
-const DefaultView = ({ events, showModal, toggleModal }: { events: Event[], showModal: any, toggleModal: any }) => (
-  <>
-    <div className='flex flex-col justify-center'>
-      <PlansHeaderView toggleModal={toggleModal} />
-      {events.length > 0 ? events.map((event: Event) => (
-        <EventView key={event.id} event={event} />
-      ))
-        : <h1 className='mr-auto ml-auto text-gray-700 text-xl p-2'>Add some events!</h1>}
-    </div>
-    <Modal visable={showModal} toggleModal={toggleModal} />
-  </>
-)
+const dateInputValue = (isoTimestamp: string) => {
+  const dt = new Date(isoTimestamp)
+  const year = dt.getFullYear()
+  const month = dt.getMonth()
+  const day = dt.getDate()
+  const hour = String(dt.getHours()).padStart(2, '0')
+  const minute = String(dt.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day}T${hour}:${minute}`
+}
+type NewEventModalContentProps = { toggleModal: any }
+const NewEventModalContent = ({ toggleModal }: NewEventModalContentProps) => {
+  const [newEventName, setNewEventName] = useState('')
+  const [newEventTime, setNewEventTime] = useState('')
+  return (
+    <>
+      <h1>New Event</h1>
+      <label>
+        Name:
+        <input
+          type="text"
+          value={newEventName}
+          onChange={evt => setNewEventName(evt.target.value)} />
+      </label>
+      <label>
+        Date
+        <input
+          type="datetime-local"
+          value={dateInputValue(newEventTime)}
+          onChange={evt => {
+            const isoDatetime = new Date(evt.target.value).toISOString()
+            setNewEventTime(isoDatetime)
+          }} />
+      </label>
+      <button
+        className="btn btn-blue"
+        onClick={() => {
+          CreateNewEvent({ timestamp: newEventTime, name: newEventName })
+            .then((_newEvent) => {
+              // refresh events on page?
+              toggleModal(false)
+            })
+            .catch(err => {
+              console.log(err)
+              // inform user of problem?
+              toggleModal(false)
+            })
+        }}>
+        Add
+      </button>
+    </>
+  )
+}
+type DefaultViewProps = { events: Event[], showModal: any, toggleModal: any }
+type DefaultView = (props: DefaultViewProps) => JSX.Element
+const DefaultView: DefaultView = ({ events, showModal, toggleModal }) => {
+  return (
+    <>
+      <div className='flex flex-col justify-center'>
+        <PlansHeaderView toggleModal={toggleModal} />
+        {
+          (events.length > 0)
+            ? events.map((event: Event) => (<EventView key={event.id} event={event} />))
+            : <h1 className='mr-auto ml-auto text-gray-700 text-xl p-2'>Add some events!</h1>
+        }
+      </div>
+      <Modal visible={showModal}>
+        <NewEventModalContent toggleModal={toggleModal} />
+      </Modal>
+    </>
+  )
+}
 
 const PlansHeaderView = ({ toggleModal }: { toggleModal: any }) => (
   <div className='flex bg-gray-700 items-center p-2'>
