@@ -17,7 +17,7 @@ export const setupTable = () => (
   )
 )
 
-// getAllEvents :: Monoid? -> does something with the data
+// getAllEvents :: callback -> does something with the data
 export const getAllEvents = (callback: (a: Event[] | Error) => void) => {
   db.all('select * from events', (err, rows) => {
     if (err) {
@@ -28,7 +28,7 @@ export const getAllEvents = (callback: (a: Event[] | Error) => void) => {
   })
 }
 
-// getEventById :: Id -> Monoid? -> void
+// getEventById :: Id -> Callback -> void
 // maybe consider making a curried function?
 export const getEventById = (
   id: number,
