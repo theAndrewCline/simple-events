@@ -13,3 +13,11 @@ export const CreateNewEvent = (event: any) => {
   })
     .then(x => x.json())
 }
+
+export const DeleteEvent = (eventId: number) => {
+  return fetch(`http://localhost:3333/events/${eventId}/delete`, {
+    method: 'POST'
+  })
+    .then((x: any) => x.json())
+}
+

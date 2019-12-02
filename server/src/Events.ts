@@ -71,10 +71,18 @@ export const createEvent: createEvent = async ({ name, timestamp }) => {
   })
 }
 
+const deleteById = (id: string) => new Promise((resolve, reject) => {
+  db.run('delete from events where id = ?', [id], function (err: Error) {
+    if (err) return reject(err)
+    resolve({ message: `Successfully deleted event ${id}` })
+  })
+})
+
 export default {
   getAll: getAllEvents,
   getById: getEventById,
   create: createEvent,
   updateById: updateEventById,
-  setupTable: setupTable
+  setupTable: setupTable,
+  deleteById
 }

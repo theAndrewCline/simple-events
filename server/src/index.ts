@@ -35,6 +35,15 @@ app.post('/events/create', async (req, res) => {
   }
 })
 
+app.post('/events/:id/delete', async (req, res) => {
+  const { id } = req.params
+  try {
+    const response = await Events.deleteById(id)
+    res.send(response)
+  } catch (err) {
+    res.status(500).send(err)
+  }
+})
 
 app.listen(port, () => {
   console.log(`listening at port ${port}`)

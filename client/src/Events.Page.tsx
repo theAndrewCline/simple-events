@@ -2,28 +2,31 @@ import React, { useEffect, useState } from 'react'
 
 import { Model, Event } from '../../types/Model'
 import { Modal } from './components/Modal'
-import { CreateNewEvent, FetchAllEvents } from './lib/Events.api'
+import { CreateNewEvent, FetchAllEvents, DeleteEvent } from './lib/Events.api'
 
 type EventsPageState = 'Loading' | 'Error' | Model
 
+const refreshEventList = async (updateAppState: any) => {
+  return FetchAllEvents()
+    .then((model: Model | Error) => {
+      if (model instanceof Error) {
+        console.error(model)
+        updateAppState('Error')
+      } else {
+        updateAppState(model)
+      }
+    })
+    .catch((err) => {
+      console.error(err)
+      updateAppState('Error')
+    })
+}
 export const EventsPage = () => {
   const [appState, updateAppState] = useState<EventsPageState>('Loading')
   const [showModal, toggleModel] = useState<boolean>(false)
 
   useEffect(() => {
-    FetchAllEvents()
-      .then((model: Model | Error) => {
-        if (model instanceof Error) {
-          console.error(model)
-          updateAppState('Error')
-        } else {
-          updateAppState(model)
-        }
-      })
-      .catch((err) => {
-        console.error(err)
-        updateAppState('Error')
-      })
+    refreshEventList(updateAppState)
   }, [])
 
   switch (appState) {
@@ -32,7 +35,11 @@ export const EventsPage = () => {
     case 'Error':
       return <ErrorView />
     default:
-      return <DefaultView events={appState.events} showModal={showModal} toggleModal={toggleModel} />
+      return <DefaultView
+        events={appState.events}
+        showModal={showModal}
+        toggleModal={toggleModel}
+        update={updateAppState} />
   }
 }
 
@@ -92,16 +99,16 @@ const NewEventModalContent = ({ toggleModal }: NewEventModalContentProps) => {
     </>
   )
 }
-type DefaultViewProps = { events: Event[], showModal: any, toggleModal: any }
+type DefaultViewProps = { events: Event[], showModal: any, toggleModal: any, update: any }
 type DefaultView = (props: DefaultViewProps) => JSX.Element
-const DefaultView: DefaultView = ({ events, showModal, toggleModal }) => {
+const DefaultView: DefaultView = ({ events, showModal, toggleModal, update }) => {
   return (
     <>
       <div className='flex flex-col justify-center'>
         <PlansHeaderView toggleModal={toggleModal} />
         {
           (events.length > 0)
-            ? events.map((event: Event) => (<EventView key={event.id} event={event} />))
+            ? events.map((event: Event) => (<EventView key={event.id} event={event} update={update} />))
             : <h1 className='mr-auto ml-auto text-gray-700 text-xl p-2'>Add some events!</h1>
         }
       </div>
@@ -119,12 +126,22 @@ const PlansHeaderView = ({ toggleModal }: { toggleModal: any }) => (
   </div>
 )
 
-const EventView = ({ event }: { event: Event }) => (
+const EventView = ({ event, update }: { event: Event, update: any }) => (
   <div className='flex bg-gray-200 rounded mt-2 mr-2 ml-2 p-2 items-center'>
     <h1 className='text-3xl mr-auto'>{event.name}</h1>
     {/* commenting this out for now, but this is what the service date should look like */}
     {/* <p className='mr-auto ml-2 text-gray-700'>11/21/19</p> */}
     <button className='btn btn-blue mr-2'>Edit</button>
-    <button className='btn btn-red'>Delete</button>
+    <button className='btn btn-red' onClick={async () => {
+      try {
+        await DeleteEvent(event.id)
+        await refreshEventList(update)
+      } catch (err) {
+        console.log(err)
+        // TODO: inform user of problem
+      }
+    }}>
+      Delete
+    </button>
   </div>
 )
