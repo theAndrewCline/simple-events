@@ -11,7 +11,7 @@ app.use(express.json())
 
 Events.setupTable()
 
-app.get('/events', (_req, res) => {
+app.get('/events', (req, res) => {
   const eventsCB = (events: Error | Event[]) => {
     if (events instanceof Error) {
       console.log(events)
