@@ -35,6 +35,17 @@ app.post('/events/create', async (req, res) => {
   }
 })
 
+app.post('/events/:id/update', async (req, res) => {
+  const id = Number(req.params.id)
+  const { name, timestamp } = req.body.event
+  try {
+    const response = await Events.updateById({ id, name, timestamp })
+    res.send(response)
+  } catch (err) {
+    res.status(500).send(err)
+  }
+})
+
 app.post('/events/:id/delete', async (req, res) => {
   const { id } = req.params
   try {

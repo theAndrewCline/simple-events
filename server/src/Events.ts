@@ -43,36 +43,34 @@ export const getEventById = (
   })
 }
 
-// updateEventById :: Id -> Callback -> void
-export const updateEventById = ({ id, name, timestamp }: Event, callback: (a: Error | Event[]) => void) => {
-  db.all('update events set name = ?, timestamp = ? where id = ?', [name, timestamp, id], (err, rows) => {
-    if (err) {
-      callback(err)
-    } else {
-      callback(rows)
-    }
+type updateEventById = (e: Event) => Promise<any>
+export const updateEventById: updateEventById = ({ id, name, timestamp }: Event) => {
+  return new Promise((resolve, reject) => {
+    const sql = 'update events set name = ?, timestamp = ? where id = ?'
+    const values = [name, timestamp, id]
+    db.all(sql, values, (err, rows) => {
+      if (err) return reject(err)
+      resolve(rows)
+    })
   })
 }
 
 type createEvent = (e: { name: string, timestamp: string }) => Promise<Event>
-export const createEvent: createEvent = async ({ name, timestamp }) => {
+export const createEvent: createEvent = ({ name, timestamp }) => {
   return new Promise((resolve, reject) => {
-    db.run('insert into events (name, timestamp) values (?, ?)', [name, timestamp], function (err: Error) {
-      if (err) {
-        reject(err)
-      } else {
-        resolve({
-          id: this.lastID,
-          name,
-          timestamp
-        })
-      }
+    const sql = 'insert into events (name, timestamp) values (?, ?)'
+    const values = [name, timestamp]
+    db.run(sql, values, function (err: Error) {
+      if (err) return reject(err)
+      resolve({ id: this.lastID, name, timestamp })
     })
   })
 }
 
 const deleteById = (id: string) => new Promise((resolve, reject) => {
-  db.run('delete from events where id = ?', [id], function (err: Error) {
+  const sql = 'delete from events where id = ?'
+  const values = [id]
+  db.run(sql, values, function (err: Error) {
     if (err) return reject(err)
     resolve({ message: `Successfully deleted event ${id}` })
   })

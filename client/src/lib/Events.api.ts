@@ -21,3 +21,11 @@ export const DeleteEvent = (eventId: number) => {
     .then((x: any) => x.json())
 }
 
+export const UpdateEvent = (event: any) => {
+  return fetch(`http://localhost:3333/events/${event.id}/update`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event })
+  })
+    .then((x: any) => x.json())
+}

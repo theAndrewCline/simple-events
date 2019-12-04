@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 
 import { Model, Event } from '../../types/Model'
 import { Modal } from './components/Modal'
-import { CreateNewEvent, FetchAllEvents, DeleteEvent } from './lib/Events.api'
+import { CreateNewEvent, FetchAllEvents, DeleteEvent, UpdateEvent } from './lib/Events.api'
 
 type EventsPageState = 'Loading' | 'Error' | Model
 
@@ -23,7 +23,7 @@ const refreshEventList = async (updateAppState: any) => {
 }
 export const EventsPage = () => {
   const [appState, updateAppState] = useState<EventsPageState>('Loading')
-  const [showModal, toggleModel] = useState<boolean>(false)
+  const [showModal, toggleModal] = useState<boolean>(false)
 
   useEffect(() => {
     refreshEventList(updateAppState)
@@ -38,7 +38,7 @@ export const EventsPage = () => {
       return <DefaultView
         events={appState.events}
         showModal={showModal}
-        toggleModal={toggleModel}
+        toggleModal={toggleModal}
         update={updateAppState} />
   }
 }
@@ -50,8 +50,8 @@ const ErrorView = () => (<h1>Error</h1>)
 const dateInputValue = (isoTimestamp: string) => {
   const dt = new Date(isoTimestamp)
   const year = dt.getFullYear()
-  const month = dt.getMonth()
-  const day = dt.getDate()
+  const month = dt.getMonth() + 1
+  const day = String(dt.getDate()).padStart(2, '0')
   const hour = String(dt.getHours()).padStart(2, '0')
   const minute = String(dt.getMinutes()).padStart(2, '0')
   return `${year}-${month}-${day}T${hour}:${minute}`
@@ -99,6 +99,47 @@ const NewEventModalContent = ({ toggleModal }: NewEventModalContentProps) => {
     </>
   )
 }
+const EditEventModalContent = ({ toggleModal, timestamp, name, id, update }: any) => {
+  const [eventName, setEventName] = useState(name)
+  const [eventTime, setEventTime] = useState(timestamp)
+  return (
+    <>
+      <h1>Edit Event</h1>
+      <label>
+        Name:
+        <input
+          type="text"
+          value={eventName}
+          onChange={evt => setEventName(evt.target.value)} />
+      </label>
+      <label>
+        Date
+        <input
+          type="datetime-local"
+          value={dateInputValue(eventTime)}
+          onChange={evt => {
+            const isoDatetime = new Date(evt.target.value).toISOString()
+            setEventTime(isoDatetime)
+          }} />
+      </label>
+      <button
+        className="btn btn-blue"
+        onClick={async () => {
+          try {
+            await UpdateEvent({ id, timestamp: eventTime, name: eventName })
+            await refreshEventList(update)
+            toggleModal(false)
+          } catch (err) {
+            console.log(err)
+            // TODO: inform user of problem
+            toggleModal(false)
+          }
+        }}>
+        Update
+      </button>
+    </>
+  )
+}
 type DefaultViewProps = { events: Event[], showModal: any, toggleModal: any, update: any }
 type DefaultView = (props: DefaultViewProps) => JSX.Element
 const DefaultView: DefaultView = ({ events, showModal, toggleModal, update }) => {
@@ -126,22 +167,36 @@ const PlansHeaderView = ({ toggleModal }: { toggleModal: any }) => (
   </div>
 )
 
-const EventView = ({ event, update }: { event: Event, update: any }) => (
-  <div className='flex bg-gray-200 rounded mt-2 mr-2 ml-2 p-2 items-center'>
-    <h1 className='text-3xl mr-auto'>{event.name}</h1>
-    {/* commenting this out for now, but this is what the service date should look like */}
-    {/* <p className='mr-auto ml-2 text-gray-700'>11/21/19</p> */}
-    <button className='btn btn-blue mr-2'>Edit</button>
-    <button className='btn btn-red' onClick={async () => {
-      try {
-        await DeleteEvent(event.id)
-        await refreshEventList(update)
-      } catch (err) {
-        console.log(err)
-        // TODO: inform user of problem
-      }
-    }}>
-      Delete
-    </button>
-  </div>
-)
+const EventView = ({ event, update }: any) => {
+  const [showModal, toggleModal] = useState<boolean>(false)
+
+  return (
+    <>
+      <div className='flex bg-gray-200 rounded mt-2 mr-2 ml-2 p-2 items-center'>
+        <h1 className='text-3xl mr-auto'>{event.name}</h1>
+        {/* commenting this out for now, but this is what the service date should look like */}
+        {/* <p className='mr-auto ml-2 text-gray-700'>11/21/19</p> */}
+        <button className='btn btn-blue mr-2' onClick={() => toggleModal(true)}>Edit</button>
+        <button className='btn btn-red' onClick={async () => {
+          try {
+            await DeleteEvent(event.id)
+            await refreshEventList(update)
+          } catch (err) {
+            console.log(err)
+            // TODO: inform user of problem
+          }
+        }}>
+          Delete
+        </button>
+      </div>
+      <Modal visible={showModal}>
+        <EditEventModalContent
+          id={event.id}
+          name={event.name}
+          timestamp={event.timestamp}
+          update={update}
+          toggleModal={toggleModal} />
+      </Modal>
+    </>
+  )
+}
