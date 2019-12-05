@@ -17,29 +17,13 @@ export const setupTable = () => (
   )
 )
 
-// getAllEvents :: callback -> does something with the data
-export const getAllEvents = (callback: (a: Event[] | Error) => void) => {
-  db.all('select * from events', (err, rows) => {
-    if (err) {
-      callback(err)
-    } else {
-      callback(rows)
-    }
-  })
-}
-
-// getEventById :: Id -> Callback -> void
-// maybe consider making a curried function?
-export const getEventById = (
-  id: number,
-  callback: (a: Event | Error) => void
-) => {
-  db.get('select * from events where id = ?', [id], (err, row) => {
-    if (err) {
-      callback(err)
-    } else {
-      callback(row)
-    }
+type getAllEvents = () => Promise<Event[]>
+export const getAllEvents: getAllEvents = () => {
+  return new Promise((resolve, reject) => {
+    db.all('select * from events', (err, rows) => {
+      if (err) return reject(err)
+      resolve(rows)
+    })
   })
 }
 
@@ -78,7 +62,6 @@ const deleteById = (id: string) => new Promise((resolve, reject) => {
 
 export default {
   getAll: getAllEvents,
-  getById: getEventById,
   create: createEvent,
   updateById: updateEventById,
   setupTable: setupTable,

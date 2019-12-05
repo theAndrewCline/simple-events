@@ -11,18 +11,13 @@ app.use(express.json())
 
 Events.setupTable()
 
-app.get('/events', (req, res) => {
-  const eventsCB = (events: Error | Event[]) => {
-    if (events instanceof Error) {
-      console.log(events)
-      res.set(500)
-      res.send(new Error('server error'))
-    } else {
-      res.send({ events })
-    }
+app.get('/events', async (req, res) => {
+  try {
+    const events = await Events.getAll()
+    res.send(events)
+  } catch (err) {
+    res.status(500).send(err)
   }
-
-  Events.getAll(eventsCB)
 })
 
 app.post('/events/create', async (req, res) => {
