@@ -6,59 +6,54 @@ const db: Database = new sqlite3.Database(
   path.resolve(__dirname, '../../db/events.db')
 )
 
-// setupTable :: creates table if it doesn't already exist
-export const setupTable = () => (
-  db.run(
-    `CREATE TABLE IF NOT EXISTS events (
-      id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      timestamp TEXT NOT NULL
-    )`
-  )
-)
+export const setupTable = async () => {
+  const sql = `CREATE TABLE IF NOT EXISTS events (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    timestamp TEXT NOT NULL
+  )`
+  await runSql(sql, [])
+}
 
-type getAllEvents = () => Promise<Event[]>
-export const getAllEvents: getAllEvents = () => {
-  return new Promise((resolve, reject) => {
-    db.all('select * from events', (err, rows) => {
-      if (err) return reject(err)
-      resolve(rows)
-    })
-  })
+type getAllEvents = () => Promise<any>
+export const getAllEvents: getAllEvents = async () => {
+  const sql = 'select * from events'
+  const { rows } = await runSql(sql, [])
+  return rows
 }
 
 type updateEventById = (e: Event) => Promise<any>
-export const updateEventById: updateEventById = ({ id, name, timestamp }: Event) => {
-  return new Promise((resolve, reject) => {
-    const sql = 'update events set name = ?, timestamp = ? where id = ?'
-    const values = [name, timestamp, id]
-    db.all(sql, values, (err, rows) => {
-      if (err) return reject(err)
-      resolve(rows)
-    })
-  })
+export const updateEventById: updateEventById = async ({ id, name, timestamp }: Event) => {
+  const sql = 'update events set name = ?, timestamp = ? where id = ?'
+  const values = [name, timestamp, id]
+  const { rows }  = await runSql(sql, values)
+  return rows
 }
 
 type createEvent = (e: { name: string, timestamp: string }) => Promise<Event>
-export const createEvent: createEvent = ({ name, timestamp }) => {
-  return new Promise((resolve, reject) => {
-    const sql = 'insert into events (name, timestamp) values (?, ?)'
-    const values = [name, timestamp]
-    db.run(sql, values, function (err: Error) {
-      if (err) return reject(err)
-      resolve({ id: this.lastID, name, timestamp })
-    })
-  })
+export const createEvent: createEvent = async ({ name, timestamp }) => {
+  const sql = 'insert into events (name, timestamp) values (?, ?)'
+  const values = [name, timestamp]
+  const { lastID } = await runSql(sql, values)
+  return { id: lastID, name, timestamp }
 }
 
-const deleteById = (id: string) => new Promise((resolve, reject) => {
+const deleteById = async (id: string) => {
   const sql = 'delete from events where id = ?'
-  const values = [id]
-  db.run(sql, values, function (err: Error) {
-    if (err) return reject(err)
-    resolve({ message: `Successfully deleted event ${id}` })
-  })
-})
+  await runSql(sql, [id])
+  return { message: `Successfully deleted event ${id}` }
+}
+
+const runSql = (sql: string, values: any[]): Promise<any> => new Promise (
+  (resolve, reject) => {
+    db.all(sql, values, function (err: Error, rows: any) {
+      if (err) return reject(err)
+      // @ts-ignore-line
+     const lastID = this.lastID || null
+      resolve({ lastID, rows })
+    })
+  }
+)
 
 export default {
   getAll: getAllEvents,
