@@ -56,8 +56,8 @@ const dateInputValue = (isoTimestamp: string) => {
   const minute = String(dt.getMinutes()).padStart(2, '0')
   return `${year}-${month}-${day}T${hour}:${minute}`
 }
-type NewEventModalContentProps = { toggleModal: any }
-const NewEventModalContent = ({ toggleModal }: NewEventModalContentProps) => {
+type NewEventModalContentProps = { toggleModal: any, update: any }
+const NewEventModalContent = ({ toggleModal, update }: NewEventModalContentProps) => {
   const [newEventName, setNewEventName] = useState('')
   const [newEventTime, setNewEventTime] = useState('')
   return (
@@ -85,8 +85,8 @@ const NewEventModalContent = ({ toggleModal }: NewEventModalContentProps) => {
         onClick={() => {
           CreateNewEvent({ timestamp: newEventTime, name: newEventName })
             .then((_newEvent) => {
-              // refresh events on page?
               toggleModal(false)
+              refreshEventList(update)
             })
             .catch(err => {
               console.log(err)
@@ -154,7 +154,10 @@ const DefaultView: DefaultView = ({ events, showModal, toggleModal, update }) =>
         }
       </div>
       <Modal visible={showModal}>
-        <NewEventModalContent toggleModal={toggleModal} />
+        <NewEventModalContent 
+          toggleModal={toggleModal}
+          update={update}
+        />
       </Modal>
     </>
   )

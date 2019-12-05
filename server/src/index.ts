@@ -9,12 +9,16 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-Events.setupTable()
+try {
+  Events.setupTable()
+} catch (err) {
+  console.error(err)
+}
 
 app.get('/events', async (req, res) => {
   try {
     const events = await Events.getAll()
-    res.send(events)
+    res.send({ events })
   } catch (err) {
     res.status(500).send(err)
   }
